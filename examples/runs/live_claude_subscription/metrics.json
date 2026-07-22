@@ -1,0 +1,100 @@
+{
+  "games": [
+    {
+      "winner": "ESTP",
+      "winning_price": 50.0,
+      "runner_up": null,
+      "runner_up_price": 0.0,
+      "rounds": 1,
+      "turns": 2,
+      "stop_reason": "one_bidder_left",
+      "item_value": 100.0,
+      "escalation_ratio": 0.5,
+      "auctioneer_profit": -50.0,
+      "total_paid_by_bidders": 50.0,
+      "sum_payoffs": 50.0,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "latency_ms": 9080.49,
+      "agents": {
+        "ESTP": {
+          "payoff": 50.0,
+          "final_committed": 50.0,
+          "bids_made": 1,
+          "turns_taken": 1,
+          "exit_round": null,
+          "exit_reason": null,
+          "overbid": 0.0,
+          "first_irrational_round": null,
+          "first_irrational_bid": null,
+          "rounds_past_rational": null,
+          "bids_past_rational": 0,
+          "mean_confidence": 92,
+          "forced_actions": 0,
+          "parse_retries": 0,
+          "errors": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "latency_ms": 3922.56
+        },
+        "INTJ": {
+          "payoff": 0.0,
+          "final_committed": 0.0,
+          "bids_made": 0,
+          "turns_taken": 1,
+          "exit_round": 1,
+          "exit_reason": "chose",
+          "overbid": 0.0,
+          "first_irrational_round": null,
+          "first_irrational_bid": null,
+          "rounds_past_rational": null,
+          "bids_past_rational": 0,
+          "mean_confidence": 92,
+          "forced_actions": 0,
+          "parse_retries": 0,
+          "errors": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "latency_ms": 5157.93
+        }
+      },
+      "game_index": 0,
+      "seed": 7
+    }
+  ],
+  "aggregate": {
+    "games": 1,
+    "mean_winning_price": 50.0,
+    "mean_escalation_ratio": 0.5,
+    "mean_rounds": 1,
+    "mean_auctioneer_profit": -50.0,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "agents": {
+      "ESTP": {
+        "games": 1,
+        "wins": 1,
+        "mean_payoff": 50.0,
+        "worst_payoff": 50.0,
+        "mean_final_committed": 50.0,
+        "mean_overbid": 0.0,
+        "escalated_in_games": 0,
+        "mean_rounds_past_rational": null,
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      "INTJ": {
+        "games": 1,
+        "wins": 0,
+        "mean_payoff": 0.0,
+        "worst_payoff": 0.0,
+        "mean_final_committed": 0.0,
+        "mean_overbid": 0.0,
+        "escalated_in_games": 0,
+        "mean_rounds_past_rational": null,
+        "tokens_in": 0,
+        "tokens_out": 0
+      }
+    }
+  }
+}

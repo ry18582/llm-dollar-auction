@@ -1,0 +1,88 @@
+{
+  "run_id": "20260722T185336Z_s0_smoke_subscription",
+  "created_at": "2026-07-22T18:53:36.828197+00:00",
+  "experiment": {
+    "name": "s0_smoke_subscription",
+    "description": "SMOKE TEST via subscription sign-in \u2014 no API key. Drives the `claude` CLI, which uses your Pro/Max entitlement. Deliberately tiny (2 agents, $50 increment) because each decision takes seconds and draws on your plan allowance.",
+    "roster": "mbti",
+    "agents": [
+      "estp",
+      "intj"
+    ],
+    "seed": 7,
+    "repeats": 1,
+    "turn_order": "rotate",
+    "rules": {
+      "item_value": 100.0,
+      "increment": 50.0,
+      "default_budget": 250.0,
+      "max_rounds": 8,
+      "max_bid_multiple": 2.5
+    },
+    "memory": {
+      "within_game": true,
+      "cross_game": false,
+      "mode": "transcript",
+      "keep_rounds": 8
+    },
+    "overrides": {
+      "model": {
+        "provider": "cli",
+        "command": "claude",
+        "timeout": 150
+      }
+    },
+    "_path": "configs/experiments/s0_smoke_subscription.json"
+  },
+  "rules": {
+    "item_value": 100.0,
+    "increment": 50.0,
+    "default_budget": 250.0,
+    "max_rounds": 8,
+    "max_bid_multiple": 2.5
+  },
+  "agents": [
+    {
+      "name": "ESTP",
+      "objective": "maximize your own final payoff, as this type would understand it",
+      "model": {
+        "provider": "cli",
+        "command": "claude",
+        "timeout": 150
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 10,
+        "loss_aversion": 5,
+        "rational_discipline": 4,
+        "status_sensitivity": 8,
+        "reflection": 2,
+        "patience": 2
+      },
+      "strategy_notes": "Maximum aggression, minimum reflection. The reliable escalator.",
+      "prompt_profile": "MBTI ESTP"
+    },
+    {
+      "name": "INTJ",
+      "objective": "maximize your own final payoff, as this type would understand it",
+      "model": {
+        "provider": "cli",
+        "command": "claude",
+        "timeout": 150
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 7,
+        "loss_aversion": 4,
+        "rational_discipline": 9,
+        "status_sensitivity": 3,
+        "reflection": 9,
+        "patience": 8
+      },
+      "strategy_notes": "Plans the exit before the first bid and executes it.",
+      "prompt_profile": "MBTI INTJ"
+    }
+  ],
+  "python": "3.14.4",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43"
+}

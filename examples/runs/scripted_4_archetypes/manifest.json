@@ -1,0 +1,121 @@
+{
+  "run_id": "20260722T193024Z_mvp_mock",
+  "created_at": "2026-07-22T19:30:24.222296+00:00",
+  "experiment": {
+    "name": "mvp_mock",
+    "description": "MVP: 4 archetypes, scripted agents, no API keys needed.",
+    "seed": 7,
+    "repeats": 5,
+    "rules": {
+      "item_value": 100.0,
+      "increment": 5.0,
+      "default_budget": 500.0,
+      "max_rounds": 60,
+      "max_bid_multiple": 5.0
+    },
+    "roster": "archetypes",
+    "agents": [
+      "rational_economist",
+      "ego_defender",
+      "sunk_cost_escalator",
+      "reflective_strategist"
+    ],
+    "overrides": {
+      "model": {
+        "provider": "mock",
+        "model": "mock"
+      }
+    },
+    "turn_order": "rotate",
+    "_path": "configs/experiments/mvp_mock.json"
+  },
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "agents": [
+    {
+      "name": "Rational_Economist",
+      "objective": "maximize expected value; treat money already spent as gone",
+      "model": {
+        "provider": "mock",
+        "model": "mock",
+        "max_tokens": 256
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 4,
+        "loss_aversion": 3,
+        "rational_discipline": 10,
+        "status_sensitivity": 1,
+        "reflection": 9,
+        "patience": 8
+      },
+      "strategy_notes": "Exits the moment continuing has negative expected value. Ignores sunk cost entirely.",
+      "reflect_every": 2
+    },
+    {
+      "name": "Ego_Defender",
+      "objective": "avoid losing face to a rival, even where strict profit maximization says exit",
+      "model": {
+        "provider": "mock",
+        "model": "mock",
+        "max_tokens": 256
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 9,
+        "loss_aversion": 8,
+        "rational_discipline": 4,
+        "status_sensitivity": 10,
+        "reflection": 3,
+        "patience": 6
+      },
+      "strategy_notes": "Strong tendency to re-bid when challenged. Being outbid reads as a personal loss."
+    },
+    {
+      "name": "Sunk_Cost_Escalator",
+      "objective": "recover what you have already put in",
+      "model": {
+        "provider": "mock",
+        "model": "mock",
+        "max_tokens": 256
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 6,
+        "loss_aversion": 10,
+        "rational_discipline": 3,
+        "status_sensitivity": 5,
+        "reflection": 2,
+        "patience": 4
+      },
+      "strategy_notes": "Increasingly unwilling to stop as its committed total grows. Reasons about money already spent as if it were still recoverable."
+    },
+    {
+      "name": "Reflective_Strategist",
+      "objective": "win only on terms that leave you better off; stop cleanly otherwise",
+      "model": {
+        "provider": "mock",
+        "model": "mock",
+        "max_tokens": 256
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 6,
+        "loss_aversion": 5,
+        "rational_discipline": 8,
+        "status_sensitivity": 3,
+        "reflection": 10,
+        "patience": 9
+      },
+      "strategy_notes": "Pauses to reassess on a fixed cadence and will stop despite prior investment.",
+      "reflect_every": 2
+    }
+  ],
+  "python": "3.14.4",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43"
+}

@@ -1,0 +1,126 @@
+{
+  "run_id": "20260722T193024Z_s5_lone_escalator",
+  "created_at": "2026-07-22T19:30:24.546758+00:00",
+  "experiment": {
+    "name": "s5_lone_escalator",
+    "description": "ONE HAWK AMONG DOVES. A single ESTP escalator against three disciplined types (INTJ, INTP, ISTJ). Tests whether escalation needs a willing partner: with nobody trading raises, the trap should not spring. Compare with s7_duel, which is two hawks.",
+    "roster": "mbti",
+    "agents": [
+      "estp",
+      "intj",
+      "intp",
+      "istj"
+    ],
+    "seed": 3,
+    "repeats": 4,
+    "rules": {
+      "item_value": 100.0,
+      "increment": 5.0,
+      "default_budget": 500.0,
+      "max_rounds": 60,
+      "max_bid_multiple": 5.0
+    },
+    "turn_order": "rotate",
+    "memory": {
+      "within_game": false,
+      "cross_game": false
+    },
+    "overrides": {
+      "model": {
+        "provider": "mock"
+      }
+    },
+    "_path": "configs/experiments/s5_lone_escalator.json"
+  },
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "agents": [
+    {
+      "name": "ESTP",
+      "objective": "maximize your own final payoff, as this type would understand it",
+      "model": {
+        "provider": "mock",
+        "model": "mock",
+        "max_tokens": 256
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 10,
+        "loss_aversion": 5,
+        "rational_discipline": 4,
+        "status_sensitivity": 8,
+        "reflection": 2,
+        "patience": 2
+      },
+      "strategy_notes": "Maximum aggression, minimum reflection. The reliable escalator.",
+      "prompt_profile": "MBTI ESTP"
+    },
+    {
+      "name": "INTJ",
+      "objective": "maximize your own final payoff, as this type would understand it",
+      "model": {
+        "provider": "mock",
+        "model": "mock",
+        "max_tokens": 256
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 7,
+        "loss_aversion": 4,
+        "rational_discipline": 9,
+        "status_sensitivity": 3,
+        "reflection": 9,
+        "patience": 8
+      },
+      "strategy_notes": "Plans the exit before the first bid and executes it.",
+      "prompt_profile": "MBTI INTJ"
+    },
+    {
+      "name": "INTP",
+      "objective": "maximize your own final payoff, as this type would understand it",
+      "model": {
+        "provider": "mock",
+        "model": "mock",
+        "max_tokens": 256
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 4,
+        "loss_aversion": 3,
+        "rational_discipline": 9,
+        "status_sensitivity": 2,
+        "reflection": 10,
+        "patience": 7
+      },
+      "strategy_notes": "Treats the auction as a problem to solve, not a contest to win.",
+      "prompt_profile": "MBTI INTP"
+    },
+    {
+      "name": "ISTJ",
+      "objective": "maximize your own final payoff, as this type would understand it",
+      "model": {
+        "provider": "mock",
+        "model": "mock",
+        "max_tokens": 256
+      },
+      "budget": 500.0,
+      "traits": {
+        "competitiveness": 5,
+        "loss_aversion": 6,
+        "rational_discipline": 9,
+        "status_sensitivity": 3,
+        "reflection": 6,
+        "patience": 9
+      },
+      "strategy_notes": "Sets a limit in advance and honours it.",
+      "prompt_profile": "MBTI ISTJ"
+    }
+  ],
+  "python": "3.14.4",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43"
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="900" height="480" role="img" aria-label="Escalation: bids over the course of the auction"><style>
+  .bg   { fill: #ffffff; }
+  .axis { stroke: #c8ccd4; stroke-width: 1; }
+  .grid { stroke: #eceef2; stroke-width: 1; }
+  .lbl  { font: 12px system-ui, sans-serif; fill: #4a4f58; }
+  .ttl  { font: 600 15px system-ui, sans-serif; fill: #1c1f24; }
+  .ref  { stroke: #d1495b; stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .refl { font: 11px system-ui, sans-serif; fill: #d1495b; }
+  @media (prefers-color-scheme: dark) {
+    .bg   { fill: #16181d; }
+    .axis { stroke: #464b55; }
+    .grid { stroke: #24272e; }
+    .lbl  { fill: #a9b0bb; }
+    .ttl  { fill: #f0f2f5; }
+  }
+</style><rect class="bg" width="900" height="480"/><text class="ttl" x="70" y="24">Escalation: bids over the course of the auction</text><line class="grid" x1="70" y1="425.0" x2="710" y2="425.0"/><text class="lbl" x="60" y="429.0" text-anchor="end">$0</text><line class="grid" x1="70" y1="348.0" x2="710" y2="348.0"/><text class="lbl" x="60" y="352.0" text-anchor="end">$22</text><line class="grid" x1="70" y1="271.0" x2="710" y2="271.0"/><text class="lbl" x="60" y="275.0" text-anchor="end">$45</text><line class="grid" x1="70" y1="194.0" x2="710" y2="194.0"/><text class="lbl" x="60" y="198.0" text-anchor="end">$67</text><line class="grid" x1="70" y1="117.0" x2="710" y2="117.0"/><text class="lbl" x="60" y="121.0" text-anchor="end">$90</text><line class="grid" x1="70" y1="40.0" x2="710" y2="40.0"/><text class="lbl" x="60" y="44.0" text-anchor="end">$112</text><line class="axis" x1="70" y1="425" x2="710" y2="425"/><line class="axis" x1="70" y1="40" x2="70" y2="425"/><text class="lbl" x="70.0" y="445.0" text-anchor="middle">0</text><text class="lbl" x="198.0" y="445.0" text-anchor="middle">0</text><text class="lbl" x="326.0" y="445.0" text-anchor="middle">0</text><text class="lbl" x="454.0" y="445.0" text-anchor="middle">1</text><text class="lbl" x="582.0" y="445.0" text-anchor="middle">1</text><text class="lbl" x="710.0" y="445.0" text-anchor="middle">1</text><text class="lbl" x="390.0" y="466" text-anchor="middle">turn</text><line class="ref" x1="70" y1="81.2" x2="710" y2="81.2"/><text class="refl" x="76" y="75.2">item value $100</text><path d="M710.0,253.1" fill="none" stroke="#4269d0" stroke-width="2" stroke-linejoin="round" opacity="1.0"/><circle cx="710.0" cy="253.1" r="3" fill="#4269d0"/><rect x="724" y="40" width="11" height="11" rx="2" fill="#4269d0"/><text class="lbl" x="742" y="49">ESTP</text></svg>
