@@ -16,8 +16,8 @@ Why a forwarder rather than "just bind 0.0.0.0":
 Stdlib only. No dependencies.
 
     python3 share_port.py --port 8765
-    python3 share_port.py --port 8765 --bind 10.52.10.35
-    python3 share_port.py --port 3000 --bind 10.52.10.35 --allow 10.52.10.0/24
+    python3 share_port.py --port 8765 --bind 10.8.0.5
+    python3 share_port.py --port 3000 --bind 10.8.0.5 --allow 10.8.0.0/24
 
 Security: this adds NO authentication. Whatever the app exposes, every host
 that can reach the bind address can also reach — including any "run this" or
@@ -161,7 +161,7 @@ def main() -> int:
     p.add_argument("--bind", help="address to expose it on; omit to be shown the options")
     p.add_argument("--target", default="127.0.0.1", help="where the app is listening (default 127.0.0.1)")
     p.add_argument("--target-port", type=int, help="if the exposed port differs from the app's port")
-    p.add_argument("--allow", default="", help="comma-separated CIDRs allowed to connect, e.g. 10.52.10.0/24")
+    p.add_argument("--allow", default="", help="comma-separated CIDRs allowed to connect, e.g. 10.8.0.0/24")
     p.add_argument("--list", action="store_true", help="list bind addresses and exit")
     args = p.parse_args()
 
