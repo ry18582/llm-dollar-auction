@@ -254,16 +254,62 @@ each logged decision and checks the history matches bit for bit.
 
 ---
 
-## Sharing the GUI with another machine
+## Sharing the GUI over a VPN or LAN
 
-The server binds `127.0.0.1` by design. To reach it from elsewhere:
+The server binds `127.0.0.1` — nothing else can reach it. To open it from another
+machine, bind **one deliberately chosen address**, never `0.0.0.0`.
+
+`0.0.0.0` binds *every* interface, including ones you did not think about. One
+address is a decision; all of them is an accident waiting to happen.
+
+**1. See what addresses this machine has,** with a plain-language label for each:
 
 ```bash
-python3 -m dollar_auction gui --host 0.0.0.0
+python3 tools/share_port.py --list
 ```
 
-It has **no authentication**, and a run on a live provider spends real money — so
-do this only on a network you trust, and prefer a VPN address over a plain LAN.
+```
+  127.0.0.1          lo           loopback — this machine only
+  192.168.1.42       wlan0        private network — anyone on this network can reach it
+  10.8.0.5           wg0          WireGuard VPN — reachable by VPN peers only (safest to share)
+```
+
+Prefer a **VPN address**: peers are already authenticated and traffic is
+encrypted. A home or office LAN is acceptable. Café, hotel and conference wifi
+are not. A public address never is.
+
+**2a. Bind the app to that address** — simplest, one moving part:
+
+```bash
+python3 -m dollar_auction gui --host <your-vpn-ip> --port 8765
+```
+
+**2b. Or forward to it, with an allowlist** — narrower, and trivially reversible.
+Leave the GUI on loopback and put a forwarder in front:
+
+```bash
+# terminal 1 — the app stays loopback-only
+python3 -m dollar_auction gui --port 8765
+
+# terminal 2 — expose it to VPN peers only
+python3 tools/share_port.py --port 8765 \
+    --bind <your-vpn-ip> --allow <your-vpn-subnet>/24
+```
+
+`--allow` is the only access control available at this layer, so keep it narrow.
+Stop the forwarder and the app is loopback-bound again, with no config left
+behind to forget about.
+
+Then browse to `http://<your-vpn-ip>:8765/` from the other machine.
+
+> **This adds no authentication.** Anyone who can reach that address can press
+> **Run** — and with a live provider selected, that spends your API credits. On a
+> VPN that is a defensible risk because peers are authenticated. On an open
+> network it is not. Stop sharing when you are done.
+
+**WSL2 note:** a WSL NAT address (`172.x` on `eth0`) is not routable from your
+LAN — that is expected, not a misconfiguration. Use a VPN interface if you have
+one, or add a Windows `netsh portproxy` rule.
 
 ---
 
