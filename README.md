@@ -39,7 +39,9 @@ cd llm-dollar-auction
 python3 -m dollar_auction gui
 ```
 
-That opens a local web app at <http://127.0.0.1:8765>. Pick a scenario, press
+It asks which port to use, showing which are free — press Enter to accept the
+suggestion, or pass `--port 9000` to skip the question. Then open the URL it
+prints (`http://127.0.0.1:8765` by default). Pick a scenario, press
 **Run**, and watch bids land one at a time.
 
 Prefer the terminal?

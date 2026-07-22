@@ -20,6 +20,8 @@ selected, so it must not be exposed to a network.
 from __future__ import annotations
 
 import json
+import socket
+import sys
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -319,14 +321,132 @@ class Handler(BaseHTTPRequestHandler):
         return self._json({"error": "not found"}, 404)
 
 
-def serve(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = True) -> None:
+DEFAULT_PORT = 8765
+
+
+def port_is_free(host: str, port: int) -> bool:
+    probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        probe.bind((host, port))
+        return True
+    except OSError:
+        return False
+    finally:
+        probe.close()
+
+
+def free_ports(host: str, start: int, count: int = 3) -> list[int]:
+    found, port = [], start
+    while len(found) < count and port < start + 60:
+        if port_is_free(host, port):
+            found.append(port)
+        port += 1
+    return found
+
+
+def who_has_it(port: int) -> str:
+    """Best-effort: name the process holding a port, so the clash is explicable."""
+    import glob
+    import os
+
+    try:
+        target = f"{port:04X}"
+        inodes = set()
+        for table in ("/proc/net/tcp", "/proc/net/tcp6"):
+            try:
+                for line in open(table).read().splitlines()[1:]:
+                    f = line.split()
+                    if f[1].split(":")[1] == target and f[3] == "0A":  # 0A = LISTEN
+                        inodes.add(f[9])
+            except OSError:
+                pass
+        for fd in glob.glob("/proc/[0-9]*/fd/*"):
+            try:
+                if os.readlink(fd).strip("socket:[]") in inodes:
+                    pid = fd.split("/")[2]
+                    cmd = open(f"/proc/{pid}/cmdline").read().replace("\0", " ").strip()
+                    return f"pid {pid} — {cmd[:70]}"
+            except OSError:
+                continue
+    except Exception:  # noqa: BLE001 - diagnostics must never break startup
+        pass
+    return ""
+
+
+def choose_port(host: str, requested: int | None, interactive: bool) -> int:
+    """Settle on a port, asking when there is a person to ask.
+
+    `--port N` is an explicit instruction, so it is honoured without a prompt.
+    Otherwise, in a terminal, offer a choice -- a silent default is the reason
+    a busy port turns into a confusing crash rather than a decision.
+    """
+    if requested is not None:
+        if port_is_free(host, requested):
+            return requested
+        holder = who_has_it(requested)
+        raise SystemExit(
+            f"Port {requested} is already in use"
+            + (f"\n  held by: {holder}" if holder else "")
+            + f"\n  free nearby: {', '.join(str(p) for p in free_ports(host, requested)) or 'none found'}"
+            + f"\n  try: python3 -m dollar_auction gui --port <port>"
+        )
+
+    if not interactive:
+        # No one to ask: take the default, or the next free port.
+        return DEFAULT_PORT if port_is_free(host, DEFAULT_PORT) else free_ports(host, DEFAULT_PORT)[0]
+
+    default_free = port_is_free(host, DEFAULT_PORT)
+    if default_free:
+        suggestion = DEFAULT_PORT
+        print(f"Port {DEFAULT_PORT} is free.")
+    else:
+        holder = who_has_it(DEFAULT_PORT)
+        options = free_ports(host, DEFAULT_PORT + 1)
+        suggestion = options[0] if options else DEFAULT_PORT + 1
+        print(f"Port {DEFAULT_PORT} is already in use.")
+        if holder:
+            print(f"  held by: {holder}")
+        if options:
+            print(f"  free nearby: {', '.join(str(p) for p in options)}")
+
+    while True:
+        try:
+            answer = input(f"Which port? [{suggestion}] ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return suggestion
+        if not answer:
+            return suggestion
+        if not answer.isdigit():
+            print("  Enter a number, or press Enter to accept the suggestion.")
+            continue
+        port = int(answer)
+        if not (1024 <= port <= 65535):
+            print("  Pick something between 1024 and 65535.")
+            continue
+        if not port_is_free(host, port):
+            holder = who_has_it(port)
+            print(f"  {port} is also in use{' — ' + holder if holder else ''}. Try another.")
+            continue
+        return port
+
+
+def serve(
+    host: str = "127.0.0.1",
+    port: int | None = None,
+    open_browser: bool = True,
+    interactive: bool | None = None,
+) -> None:
+    if interactive is None:
+        interactive = sys.stdin.isatty()
+    port = choose_port(host, port, interactive)
+
     try:
         server = ThreadingHTTPServer((host, port), Handler)
     except OSError as e:
-        raise SystemExit(
-            f"cannot bind {host}:{port} — {e}\n"
-            f"Another process may already be using it; try --port {port + 1}."
-        ) from None
+        # Only reachable if something grabbed the port between check and bind.
+        raise SystemExit(f"cannot bind {host}:{port} — {e}") from None
 
     display_host = "127.0.0.1" if host in ("0.0.0.0", "") else host
     url = f"http://{display_host}:{port}/"

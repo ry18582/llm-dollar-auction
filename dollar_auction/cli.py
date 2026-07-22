@@ -55,7 +55,13 @@ def main(argv: list[str] | None = None) -> int:
     p_report.add_argument("run", nargs="?", default="latest")
 
     p_gui = sub.add_parser("gui", help="open the local web GUI in a browser")
-    p_gui.add_argument("--port", type=int, default=8765)
+    p_gui.add_argument(
+        "--port",
+        type=int,
+        default=None,
+        help="port to serve on. Omit it and you will be asked, with the busy/free "
+             "state shown; pass it to skip the prompt (useful in scripts).",
+    )
     p_gui.add_argument(
         "--host",
         default="127.0.0.1",

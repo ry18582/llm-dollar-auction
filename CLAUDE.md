@@ -10,7 +10,8 @@ escalation and sunk-cost behaviour, not winning.
     python3 -m dollar_auction replay [run] [--game N]
     python3 -m dollar_auction verify [run]      # replay determinism check
     python3 -m dollar_auction report [run]      # rebuild report.md
-    python3 -m dollar_auction gui [--port 8765] [--no-browser]
+    python3 -m dollar_auction gui [--port N] [--host H] [--no-browser]
+        omit --port and it asks, showing which ports are free
     python3 -m dollar_auction doctor            # verify API keys work
     python3 -m dollar_auction list
     python3 -m unittest discover -s tests
