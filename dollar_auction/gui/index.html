@@ -555,13 +555,17 @@ function drawPicker(keep) {
 
 function onProvider() {
   const p = META.providers.find(x => x.id === $('provider').value);
-  $('model').innerHTML = p.models.map(m => `<option>${m}</option>`).join('');
-  const live = p.id !== 'mock';
-  $('model').classList.toggle('hide', !live);
-  $('modelLabel').classList.toggle('hide', !live);
-  $('keyNote').textContent = live
-    ? 'Live calls — every decision costs tokens.'
-    : 'Scripted agents: free, instant, and deterministic for a given seed.';
+  $('model').innerHTML = (p.models || []).map(m => `<option>${m}</option>`).join('');
+  // A CLI picks its own model; a scripted run has none. Only key-based
+  // providers need the model dropdown.
+  const needsModel = (p.models || []).length > 0;
+  $('model').classList.toggle('hide', !needsModel);
+  $('modelLabel').classList.toggle('hide', !needsModel);
+  $('keyNote').textContent = p.hint
+    ? p.hint
+    : p.id === 'mock'
+      ? 'Scripted agents: free, instant, and deterministic for a given seed.'
+      : 'Live calls — every decision costs tokens.';
 }
 
 // ---------------- run ----------------

@@ -87,22 +87,67 @@ Three ways, in order of how little setup they need.
 
 ### 1. Subscription or account sign-in — no API key
 
-Each provider ships an official CLI authorised to use your plan. Sign in once:
+Each provider ships an official CLI authorised to use your plan. **Sign in once,
+then either pick it in the GUI or point an experiment at it.**
 
-| CLI | Install | Uses |
-|---|---|---|
-| `claude` | <https://claude.com/code> | Claude **Pro / Max** |
-| `gemini` | `npm i -g @google/gemini-cli`, run `gemini`, sign in | Google account — **1,000 requests/day free** |
-| `codex` | `npm i -g @openai/codex`, run `codex`, sign in | Your **ChatGPT plan** |
+#### Claude — Pro / Max
 
 ```bash
-python3 -m dollar_auction doctor       # shows which CLIs are signed in
+# install: https://claude.com/code
+claude                       # run once, sign in, then quit
+python3 -m dollar_auction doctor
 python3 -m dollar_auction run configs/experiments/s0_smoke_subscription.json
 ```
 
-Slower (seconds per decision), and these tools do not report token usage, so cost
-metrics stay blank. Good for exploring; use an API key when the numbers must be
-exact and the model version pinned.
+#### Gemini — any Google account (1,000 requests/day, free)
+
+```bash
+npm i -g @google/gemini-cli
+gemini                       # run once, sign in with your Google account, then quit
+python3 -m dollar_auction doctor
+python3 -m dollar_auction run configs/experiments/s0_smoke_gemini_cli.json
+```
+
+#### Codex — your ChatGPT plan
+
+```bash
+npm i -g @openai/codex
+codex                        # run once, sign in with ChatGPT, then quit
+python3 -m dollar_auction doctor
+python3 -m dollar_auction run configs/experiments/s0_smoke_codex_cli.json
+```
+
+`doctor` lists every CLI it finds and makes one real call through each, so you
+know it works before starting a run.
+
+#### Watching it in the GUI
+
+Two ways, both without an API key:
+
+- **Scenario dropdown** → pick `s0_smoke_subscription`, `s0_smoke_gemini_cli` or
+  `s0_smoke_codex_cli`, then press **Run**.
+- **Custom setup** → set **Provider** to *Claude Code (Pro/Max sign-in)*,
+  *Gemini CLI* or *Codex CLI*. Anything you have not signed into is greyed out.
+  There is no model dropdown — the CLI picks its own model.
+
+Decisions take seconds rather than milliseconds, so set **Playback** to `0 ms`
+and watch them arrive as they happen.
+
+#### In your own experiment config
+
+```json
+"overrides": {
+  "model": { "provider": "cli", "command": "claude", "max_tokens": 1024, "timeout": 180 }
+}
+```
+
+`command` is `claude`, `gemini` or `codex`. Give `timeout` room — these are agent
+harnesses, not raw endpoints.
+
+**What you trade away:** seconds per decision; no token or cost metrics (these
+tools do not report usage); no pinned model version; and calls draw on the same
+allowance as your normal use of that tool. Use an API key when numbers must be
+exact and reproducible.
 
 ### 2. A free Gemini API key
 

@@ -137,14 +137,38 @@ def _scenarios() -> list[dict]:
 def _meta() -> dict:
     import os
 
-    providers = []
-    for p in PROVIDERS:
-        providers.append({**p, "available": p["key"] is None or bool(os.environ.get(p["key"]))})
+    from .providers.cli import available as cli_available
+
     rosters = {}
     for d in sorted((CONFIG_DIR / "agents").iterdir()):
         if d.is_dir():
             rosters[d.name] = _read_roster(d.name)
+
+    providers = []
+    for p in PROVIDERS:
+        providers.append({**p, "available": p["key"] is None or bool(os.environ.get(p["key"]))})
+
+    # Subscription / account sign-in. Listed per CLI so the dropdown says which
+    # plan is being spent, rather than an opaque "cli".
+    for entry in cli_available():
+        providers.append({
+            "id": f"cli:{entry['command']}",
+            "label": entry["label"],
+            "models": [],
+            "key": None,
+            "available": entry["installed"],
+            "hint": (
+                f"Uses your plan via the `{entry['command']}` CLI — no API key. "
+                "Slower (seconds per decision) and reports no token counts."
+                if entry["installed"]
+                else f"`{entry['command']}` is not installed or not on PATH."
+            ),
+        })
     return {"rosters": rosters, "providers": providers, "scenarios": _scenarios()}
+    rosters = {}
+    for d in sorted((CONFIG_DIR / "agents").iterdir()):
+        if d.is_dir():
+            rosters[d.name] = _read_roster(d.name)
 
 
 def _start_run(payload: dict) -> None:
@@ -179,9 +203,19 @@ def _start_run(payload: dict) -> None:
                 return
 
             provider = payload.get("provider", "mock")
-            model_block = {"provider": provider, "max_tokens": 256}
-            if provider != "mock":
-                model_block["model"] = payload.get("model")
+            if provider.startswith("cli:"):
+                # "cli:claude" -> drive the claude CLI. Bigger budget and a long
+                # timeout: these tools are agent harnesses, not raw endpoints.
+                model_block = {
+                    "provider": "cli",
+                    "command": provider.split(":", 1)[1],
+                    "max_tokens": 1024,
+                    "timeout": 180,
+                }
+            else:
+                model_block = {"provider": provider, "max_tokens": 256}
+                if provider != "mock":
+                    model_block["model"] = payload.get("model")
 
             exp = {
                 "name": payload.get("name", "gui"),

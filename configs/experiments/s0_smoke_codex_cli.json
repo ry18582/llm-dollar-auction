@@ -1,0 +1,33 @@
+{
+  "name": "s0_smoke_codex_cli",
+  "description": "SMOKE TEST via ChatGPT plan sign-in \u2014 no API key. Drives the `codex` CLI. Install: npm i -g @openai/codex, then run `codex` once and sign in.",
+  "roster": "mbti",
+  "agents": [
+    "estp",
+    "intj"
+  ],
+  "seed": 7,
+  "repeats": 1,
+  "turn_order": "rotate",
+  "rules": {
+    "item_value": 100.0,
+    "increment": 50.0,
+    "default_budget": 250.0,
+    "max_rounds": 8,
+    "max_bid_multiple": 2.5
+  },
+  "memory": {
+    "within_game": true,
+    "cross_game": false,
+    "mode": "transcript",
+    "keep_rounds": 8
+  },
+  "overrides": {
+    "model": {
+      "provider": "cli",
+      "command": "codex",
+      "max_tokens": 1024,
+      "timeout": 180
+    }
+  }
+}
