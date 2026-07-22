@@ -1,0 +1,32 @@
+{
+  "name": "s3_memory_off",
+  "description": "MEMORY ABLATION (control: every auction played blind). Run all four s3_memory_* configs and compare mean price and the first-to-last-game drift. Identical seed and roster, so memory is the only difference.",
+  "roster": "mbti",
+  "agents": [
+    "estp",
+    "esfp",
+    "esfj",
+    "enfp",
+    "intj",
+    "istj"
+  ],
+  "seed": 7,
+  "repeats": 6,
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "turn_order": "rotate",
+  "memory": {
+    "within_game": false,
+    "cross_game": false
+  },
+  "overrides": {
+    "model": {
+      "provider": "mock"
+    }
+  }
+}

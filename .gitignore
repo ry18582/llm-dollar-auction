@@ -1,0 +1,7 @@
+runs/
+.env
+.envrc
+.claude/settings.local.json
+__pycache__/
+*.pyc
+.venv/

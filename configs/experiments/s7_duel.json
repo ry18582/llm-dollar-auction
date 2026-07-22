@@ -1,0 +1,28 @@
+{
+  "name": "s7_duel",
+  "description": "DUEL. Two agents only -- the purest form of the trap, since the loser is always the one paying for nothing. Ego_Defender vs Sunk_Cost_Escalator.",
+  "roster": "archetypes",
+  "agents": [
+    "ego_defender",
+    "sunk_cost_escalator"
+  ],
+  "seed": 5,
+  "repeats": 5,
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "turn_order": "rotate",
+  "memory": {
+    "within_game": false,
+    "cross_game": false
+  },
+  "overrides": {
+    "model": {
+      "provider": "mock"
+    }
+  }
+}

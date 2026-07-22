@@ -1,0 +1,38 @@
+{
+  "name": "mbti_mock",
+  "description": "Full 16-agent MBTI roster, scripted. Free; the escalation study at scale.",
+  "seed": 11,
+  "repeats": 3,
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "roster": "mbti",
+  "agents": [
+    "intj",
+    "intp",
+    "entj",
+    "entp",
+    "infj",
+    "infp",
+    "enfj",
+    "enfp",
+    "istj",
+    "isfj",
+    "estj",
+    "esfj",
+    "istp",
+    "isfp",
+    "estp",
+    "esfp"
+  ],
+  "overrides": {
+    "model": {
+      "provider": "mock",
+      "model": "mock"
+    }
+  }
+}

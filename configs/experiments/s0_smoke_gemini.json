@@ -1,0 +1,32 @@
+{
+  "name": "s0_smoke_gemini",
+  "description": "SMOKE TEST on Google's free tier (5 requests/minute for gemini-3-flash-preview). Deliberately tiny: 2 agents, a $50 increment so the auction resolves in a handful of decisions, and a 13s throttle to stay inside the quota. Proves the plumbing and shows real model reasoning; it is not an experiment.",
+  "roster": "mbti",
+  "agents": [
+    "estp",
+    "intj"
+  ],
+  "seed": 7,
+  "repeats": 1,
+  "turn_order": "rotate",
+  "rules": {
+    "item_value": 100.0,
+    "increment": 50.0,
+    "default_budget": 250.0,
+    "max_rounds": 8,
+    "max_bid_multiple": 2.5
+  },
+  "memory": {
+    "within_game": false,
+    "cross_game": false
+  },
+  "overrides": {
+    "model": {
+      "provider": "google",
+      "model": "gemini-3-flash-preview",
+      "max_tokens": 1024,
+      "timeout": 90,
+      "min_interval": 13.0
+    }
+  }
+}

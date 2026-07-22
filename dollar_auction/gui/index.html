@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dollar Auction</title>
+<style>
+/* Palette: validated reference instance. Dark steps are chosen for the dark
+   surface, not an automatic flip. Only the roles actually used are declared. */
+:root {
+  color-scheme: light;
+  --surface-0:#f4f4f2; --surface-1:#fcfcfb; --surface-2:#eeeeeb;
+  --text-1:#0b0b0b; --text-2:#52514e; --text-3:#77766f;
+  --line:#dededa; --line-strong:#c9c9c3;
+  --series-1:#2a78d6;   /* leader */
+  --series-2:#eb6834;   /* runner-up */
+  --neutral-mark:#b4b3ad;
+  --good:#0ca30c; --serious:#ec835a; --critical:#d03b3b; --warning:#fab219;
+  --pos:#2a78d6; --neg:#d03b3b;   /* diverging pair for payoff polarity */
+  --shadow:0 1px 2px rgba(0,0,0,.05), 0 4px 12px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface-0:#131313; --surface-1:#1a1a19; --surface-2:#232322;
+    --text-1:#ffffff; --text-2:#c3c2b7; --text-3:#94938a;
+    --line:#333331; --line-strong:#46453f;
+    --series-1:#3987e5; --series-2:#d95926;
+    --neutral-mark:#5c5b55;
+    --good:#0ca30c; --serious:#ec835a; --critical:#d03b3b; --warning:#fab219;
+    --pos:#3987e5; --neg:#d03b3b;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-0:#131313; --surface-1:#1a1a19; --surface-2:#232322;
+  --text-1:#ffffff; --text-2:#c3c2b7; --text-3:#94938a;
+  --line:#333331; --line-strong:#46453f;
+  --series-1:#3987e5; --series-2:#d95926;
+  --neutral-mark:#5c5b55;
+  --pos:#3987e5; --neg:#d03b3b;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--surface-0); color:var(--text-1);
+  font:14px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+header {
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  padding:13px 22px; border-bottom:1px solid var(--line);
+  background:var(--surface-1); position:sticky; top:0; z-index:20;
+}
+h1 { font-size:16px; margin:0; font-weight:640; letter-spacing:-.01em; }
+.tagline { color:var(--text-2); font-size:13px; }
+.spacer { margin-left:auto; }
+#status {
+  font-size:12.5px; font-weight:600; color:var(--text-2);
+  display:flex; align-items:center; gap:7px;
+}
+#status .led { width:7px; height:7px; border-radius:50%; background:var(--neutral-mark); }
+#status.live .led { background:var(--good); animation:pulse 1.1s ease-in-out infinite; }
+#status.bad { color:var(--critical); } #status.bad .led { background:var(--critical); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+.iconbtn {
+  background:none; border:1px solid var(--line); border-radius:7px; cursor:pointer;
+  color:var(--text-2); padding:5px 9px; font:inherit; font-size:13px;
+}
+
+/* ---- first-run guide ---- */
+#guide { margin:14px 22px 0; border:1px solid var(--series-1); border-radius:11px;
+  background:var(--surface-1); box-shadow:var(--shadow); overflow:hidden; }
+#guide .gh { padding:12px 18px 4px; font-weight:660; font-size:13.5px; }
+#guide ol { margin:0; padding:4px 18px 6px 38px; }
+#guide li { margin:0 0 9px; font-size:13.2px; color:var(--text-2); line-height:1.55; }
+#guide li b { color:var(--text-1); }
+#guide .close { margin:0 18px 14px; }
+#guide kbd { background:var(--surface-2); border:1px solid var(--line-strong);
+  border-radius:4px; padding:1px 6px; font:600 12px ui-monospace,monospace; }
+
+/* ---- panel help ---- */
+.help { color:var(--text-3); font-size:11.8px; line-height:1.5; margin:-4px 0 9px; }
+h2 .q { font-weight:400; text-transform:none; letter-spacing:0; color:var(--text-3);
+  margin-left:6px; font-size:11px; }
+
+/* ---- intro ---- */
+#intro {
+  margin:16px 22px 0; background:var(--surface-1); border:1px solid var(--line);
+  border-radius:11px; box-shadow:var(--shadow); overflow:hidden;
+}
+#intro > summary {
+  cursor:pointer; padding:13px 18px; font-weight:640; font-size:13.5px;
+  list-style:none; display:flex; align-items:center; gap:9px; color:var(--text-1);
+}
+#intro > summary::-webkit-details-marker { display:none; }
+#intro > summary::before {
+  content:"▸"; color:var(--text-3); font-size:11px; transition:transform .15s;
+}
+#intro[open] > summary::before { transform:rotate(90deg); }
+#intro > summary:hover { background:var(--surface-2); }
+#intro .body { padding:2px 18px 18px; max-width:78ch; }
+#intro p { margin:0 0 11px; color:var(--text-2); font-size:13.4px; line-height:1.62; }
+#intro .lede { color:var(--text-1); font-size:14.5px; line-height:1.6; }
+#intro .rule {
+  border-left:3px solid var(--serious); padding:9px 0 9px 13px; margin:0 0 13px;
+  color:var(--text-1); font-size:13.4px; line-height:1.6;
+}
+#intro .vary { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:11px; margin:14px 0 12px; }
+#intro .vary div { background:var(--surface-2); border-radius:8px; padding:10px 12px; }
+#intro .vary b { display:block; font-size:12.5px; margin-bottom:3px; color:var(--text-1); }
+#intro .vary span { font-size:12.2px; color:var(--text-2); line-height:1.5; }
+#intro .caveat { font-size:12.4px; color:var(--text-3); border-top:1px solid var(--line);
+  padding-top:11px; margin:0; }
+
+.layout { display:grid; grid-template-columns:326px minmax(0,1fr); gap:16px; padding:16px 22px 40px; align-items:start; }
+@media (max-width:1000px) { .layout { grid-template-columns:1fr; } }
+
+.card {
+  background:var(--surface-1); border:1px solid var(--line);
+  border-radius:11px; padding:15px 16px; box-shadow:var(--shadow);
+}
+.card + .card { margin-top:14px; }
+h2 {
+  font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--text-3); margin:0 0 11px; font-weight:680;
+}
+label { display:block; font-size:12.5px; margin:10px 0 5px; color:var(--text-2); font-weight:500; }
+select, input[type=number] {
+  width:100%; padding:8px 10px; border:1px solid var(--line-strong); border-radius:7px;
+  background:var(--surface-0); color:var(--text-1); font:inherit; font-size:13px;
+}
+select:focus, input:focus { outline:2px solid var(--series-1); outline-offset:-1px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+button.primary {
+  font:inherit; font-weight:640; font-size:13.5px; border-radius:8px; padding:10px 16px;
+  border:none; background:var(--series-1); color:#fff; cursor:pointer; flex:1;
+}
+button.primary:disabled { opacity:.4; cursor:not-allowed; }
+button.ghost {
+  font:inherit; font-weight:560; font-size:13px; border-radius:8px; padding:10px 14px;
+  border:1px solid var(--line-strong); background:transparent; color:var(--text-1); cursor:pointer;
+}
+button.ghost:disabled { opacity:.4; cursor:not-allowed; }
+.mini { padding:4px 10px !important; font-size:12px !important; font-weight:500 !important; }
+
+.switch { display:flex; gap:11px; align-items:flex-start; padding:8px 0; }
+.switch input { margin-top:3px; width:16px; height:16px; accent-color:var(--series-1); flex:none; }
+.switch .t { font-weight:600; font-size:13px; }
+.switch .d { color:var(--text-3); font-size:11.8px; line-height:1.45; margin-top:1px; }
+
+.picker { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-top:8px; }
+.picker.wide { grid-template-columns:1fr 1fr; }
+.pick {
+  border:1px solid var(--line-strong); background:var(--surface-0); border-radius:6px;
+  padding:6px 3px; font-size:11.5px; font-weight:620; cursor:pointer; text-align:center;
+  color:var(--text-3); user-select:none; transition:all .12s;
+}
+.pick:hover { border-color:var(--series-1); }
+.pick.on { background:var(--series-1); border-color:var(--series-1); color:#fff; }
+
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:11px; }
+.tile { background:var(--surface-2); border-radius:9px; padding:11px 13px; }
+.tile .k { font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); font-weight:640; }
+.tile .v { font-size:23px; font-weight:660; font-variant-numeric:tabular-nums; margin-top:3px; letter-spacing:-.02em; }
+.tile .s { font-size:11.5px; color:var(--text-3); }
+
+/* who pays */
+.pays { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media (max-width:620px) { .pays { grid-template-columns:1fr; } }
+.pay {
+  border:1px solid var(--line); border-left:3px solid var(--neutral-mark);
+  border-radius:8px; padding:11px 13px; background:var(--surface-2);
+}
+.pay.first { border-left-color:var(--series-1); }
+.pay.second { border-left-color:var(--series-2); }
+.pay .rank { font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+             color:var(--text-3); font-weight:680; }
+.pay .who { font-size:16px; font-weight:640; margin:3px 0 2px; }
+.pay .amt { font-size:13px; font-variant-numeric:tabular-nums; color:var(--text-2); }
+.pay .net { font-size:13px; font-weight:640; font-variant-numeric:tabular-nums; margin-top:3px; }
+
+.cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(166px,1fr)); gap:9px; }
+.agent {
+  border:1px solid var(--line); border-radius:9px; padding:9px 11px; background:var(--surface-0);
+  transition:opacity .2s, border-color .15s;
+}
+.agent.out { opacity:.4; }
+.agent.lead { border-color:var(--series-1); box-shadow:inset 3px 0 0 var(--series-1); }
+.agent.second { border-color:var(--series-2); box-shadow:inset 3px 0 0 var(--series-2); }
+.agent .top { display:flex; align-items:center; gap:7px; }
+.agent .nm { font-weight:640; font-size:13px; }
+.agent .tag { font-size:9.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+              padding:1px 5px; border-radius:4px; margin-left:auto; }
+.tag.pay1 { background:var(--series-1); color:#fff; }
+.tag.pay2 { background:var(--series-2); color:#fff; }
+.tag.safe { background:var(--surface-2); color:var(--text-3); }
+.agent .wipe {
+  margin-left:auto; background:none; border:1px solid var(--line-strong); color:var(--text-3);
+  border-radius:5px; font-size:11px; line-height:1; padding:3px 6px; cursor:pointer;
+}
+.agent .wipe:hover { border-color:var(--critical); color:var(--critical); }
+#log .wipe-line { color:var(--serious); font-weight:600; }
+.agent .amt { font-variant-numeric:tabular-nums; font-size:14px; font-weight:640; margin-top:6px; }
+.agent .amt.over { color:var(--critical); }
+.agent .why { color:var(--text-3); font-size:11.3px; margin-top:4px; min-height:2.5em; line-height:1.35; }
+
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th, td { text-align:right; padding:7px 9px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+th:first-child, td:first-child { text-align:left; font-variant-numeric:normal; }
+th { color:var(--text-3); font-weight:640; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; }
+tbody tr:hover { background:var(--surface-2); }
+.pos { color:var(--pos); } .neg { color:var(--neg); }
+.note { color:var(--text-3); font-size:12.3px; margin:10px 0 0; line-height:1.5; }
+.desc { color:var(--text-2); font-size:12.3px; margin-top:8px; line-height:1.5; }
+.hide { display:none !important; }
+#log { max-height:180px; overflow:auto; font:12px/1.6 ui-monospace,Menlo,Consolas,monospace; color:var(--text-3); }
+#log b { color:var(--text-1); font-weight:600; }
+#log .up { color:var(--series-1); } #log .down { color:var(--text-2); }
+#tip {
+  position:fixed; pointer-events:none; z-index:50; background:var(--surface-1);
+  border:1px solid var(--line-strong); border-radius:8px; padding:8px 10px;
+  font-size:12px; box-shadow:var(--shadow); display:none; max-width:230px;
+}
+#tip .h { font-weight:660; margin-bottom:3px; }
+#tip .r { color:var(--text-2); font-variant-numeric:tabular-nums; }
+.legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:9px; font-size:12px; color:var(--text-2); }
+.legend i { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Dollar Auction</h1>
+  <span class="tagline">item worth <b id="hv">$100</b> · <b>both</b> top bidders pay</span>
+  <span class="spacer"></span>
+  <span id="status"><span class="led"></span><span id="statusText">idle</span></span>
+  <button class="iconbtn" id="theme" title="Toggle light / dark">◐</button>
+</header>
+
+<div id="guide" class="hide">
+  <div class="gh">New here? Three steps.</div>
+  <ol>
+    <li><b>Pick a scenario.</b> Leave it on <b>mvp_mock</b> for your first run — 4 agents,
+      scripted, free and instant. The dropdown describes what each one asks.</li>
+    <li><b>Press <kbd>Run</kbd>.</b> Bids appear one at a time. Watch the price climb past
+      the dashed line on the chart — that line is what the item is actually worth.</li>
+    <li><b>Read the result.</b> Look at <b>Who pays</b>: two agents pay, only one gets the
+      item. The winner usually loses money. That is the whole point.</li>
+  </ol>
+  <div class="close"><button class="ghost mini" id="guideDone">Got it — hide this</button></div>
+</div>
+
+<details id="intro" open>
+  <summary>What this is, and why</summary>
+  <div class="body">
+    <p class="lede">An item worth $100 is auctioned in $5 steps. The highest bidder
+      wins it and pays their bid.</p>
+
+    <p class="rule"><b>The catch: the second-highest bidder also pays — and gets nothing.</b></p>
+
+    <p>That single rule turns an auction into a trap. Once you are about to be outbid,
+      paying $5 more is <em>locally rational</em> — walking away costs you everything you
+      have already committed, while one more bid might still win. So the bidding runs
+      past $100, and the winner ends up losing money too. People fall into this
+      reliably.</p>
+
+    <p>The question here is what <b>language models</b> do — and whether it depends on
+      who they are and what they remember.</p>
+
+    <div class="vary">
+      <div><b>Persona</b><span>16 MBTI-coded agents or 4 behavioural archetypes, each
+        with trait profiles that shape when they stop.</span></div>
+      <div><b>Memory</b><span>Whether an agent recalls its own reasoning inside a game,
+        past auctions between games, both, or nothing.</span></div>
+      <div><b>Model</b><span>The same persona across different LLMs, or different
+        personas on the same one.</span></div>
+    </div>
+
+    <p>Every decision is logged with the reason the agent gave, and every run replays
+      exactly — so a result can be re-examined, not just watched once.</p>
+
+    <p class="caveat">Scripted agents run free and instantly, and are there to exercise
+      the mechanics — their behaviour comes from a hand-written formula, not from a
+      model. The real question only gets answered on a live model.</p>
+  </div>
+</details>
+
+<div class="layout">
+  <!-- ================= controls ================= -->
+  <div>
+    <div class="card">
+      <h2>Scenario <span class="q">what to run</span></h2>
+      <div class="help">A pre-built experiment. Each one asks a specific question.
+        Pick "custom setup" to build your own.</div>
+      <select id="scenario"></select>
+      <div class="desc" id="scenarioDesc"></div>
+      <div style="margin-top:12px; display:flex; gap:9px;">
+        <button class="primary" id="run">Run</button>
+        <button class="ghost" id="stop" disabled>Stop</button>
+      </div>
+    </div>
+
+    <div class="card" id="customPanel">
+      <h2>Custom setup <span class="q">build your own</span></h2>
+      <div class="help">Roster = which cast of agents. <b>archetypes</b> are 4 named
+        behaviours; <b>mbti</b> is the 16 personality types. Click a tile to include or
+        exclude that agent; hover for its traits.</div>
+      <label for="roster">Roster</label>
+      <select id="roster"></select>
+      <div id="picker" class="picker"></div>
+      <div style="margin-top:9px; display:flex; gap:6px; align-items:center;">
+        <button class="ghost mini" id="all">All</button>
+        <button class="ghost mini" id="none">None</button>
+        <span class="note" style="margin:0 0 0 auto;" id="count">0 selected</span>
+      </div>
+
+      <div class="help" style="margin-top:14px">Who actually decides. <b>Scripted</b> is a
+        formula — free and instant, good for learning the interface. The others call a
+        real model and need a key or a signed-in CLI.</div>
+      <label for="provider">Provider</label>
+      <select id="provider"></select>
+      <label for="model" id="modelLabel">Model</label>
+      <select id="model"></select>
+      <div class="note" id="keyNote"></div>
+
+      <div class="help" style="margin-top:12px">The auction itself. <b>Item value</b> is
+        what winning is worth; <b>increment</b> is the step size per bid. <b>Seed</b> makes a
+        run repeatable — same seed, same result, every time.</div>
+      <div class="grid2">
+        <div><label for="value">Item value</label><input type="number" id="value" value="100" min="5" step="5"></div>
+        <div><label for="inc">Increment</label><input type="number" id="inc" value="5" min="1" step="1"></div>
+        <div><label for="games">Games</label><input type="number" id="games" value="4" min="1" max="30"></div>
+        <div><label for="seed">Seed</label><input type="number" id="seed" value="7"></div>
+      </div>
+
+      <label for="turn">Turn order</label>
+      <select id="turn">
+        <option value="rotate">rotate — seat shifts each game (default)</option>
+        <option value="fixed">fixed — same seats every game</option>
+        <option value="shuffle">shuffle — seeded, per game</option>
+      </select>
+      <div class="note">Bidding is strictly sequential, so no two agents ever bid at
+        once. Rotating seats stops position being confounded with persona.</div>
+    </div>
+
+    <div class="card" id="memPanel">
+      <h2>Memory <span class="q">what agents recall</span></h2>
+      <div class="help">Off by default, so every decision is made fresh. Turn these on to
+        ask whether remembering changes how agents bid.</div>
+      <div class="switch">
+        <input type="checkbox" id="wg">
+        <div><div class="t">Within-game notes</div>
+        <div class="d">Its own record inside one auction. Tests self-awareness.</div></div>
+      </div>
+      <div class="switch">
+        <input type="checkbox" id="cg">
+        <div><div class="t">Cross-game history</div>
+        <div class="d">Past auctions: price, what it paid, whether it won. The learning
+          channel — watch prices fall across games.</div></div>
+      </div>
+
+      <label for="memMode">Form</label>
+      <select id="memMode">
+        <option value="transcript">transcript — replays its own words, like a chat session</option>
+        <option value="summary">summary — compact facts only</option>
+      </select>
+
+      <div class="grid2">
+        <div><label for="keepRounds">Remember rounds</label>
+          <input type="number" id="keepRounds" value="8" min="0" max="60"></div>
+        <div><label for="keepGames">Remember games</label>
+          <input type="number" id="keepGames" value="5" min="0" max="30"></div>
+      </div>
+      <div class="note">0 = unlimited. Transcript memory grows the prompt every turn,
+        so an unlimited horizon means cost and latency climb through a long game.</div>
+      <div class="note">Wiping is only possible <b>while a run is live</b>. Scripted runs
+        finish in milliseconds, so the button is really for live-model runs, where each
+        decision takes seconds.</div>
+
+      <button class="ghost" id="wipeAll" style="width:100%; margin-top:11px" disabled>
+        Wipe all memory now</button>
+      <div class="note">Works mid-run. Every wipe is logged, so the transcript always
+        explains why an agent suddenly forgot.</div>
+    </div>
+
+    <div class="card">
+      <h2>Playback <span class="q">display only</span></h2>
+      <div class="help">How fast decisions appear on screen. This does not slow the run
+        down — scripted runs finish instantly and are replayed at your pace.</div>
+      <label for="speed"><span id="speedLbl">60 ms</span> per decision</label>
+      <input type="range" id="speed" min="0" max="400" value="60" step="10" style="width:100%">
+    </div>
+  </div>
+
+  <!-- ================= stage ================= -->
+  <div>
+    <div class="card">
+      <div class="tiles">
+        <div class="tile"><div class="k">Game</div><div class="v" id="tGame">—</div><div class="s" id="tGameSub">&nbsp;</div></div>
+        <div class="tile"><div class="k">Round</div><div class="v" id="tRound">—</div><div class="s">&nbsp;</div></div>
+        <div class="tile"><div class="k">Standing bid</div><div class="v" id="tBid">$0</div><div class="s" id="tBidSub">&nbsp;</div></div>
+        <div class="tile"><div class="k">Vs. value</div><div class="v" id="tRatio">—</div><div class="s" id="tRatioSub">&nbsp;</div></div>
+        <div class="tile"><div class="k">Still bidding</div><div class="v" id="tActive">—</div><div class="s" id="tActiveSub">&nbsp;</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Who pays right now</h2>
+      <div class="pays" id="pays"></div>
+      <p class="note">The winner pays and takes the item. The runner-up pays the same way and
+        gets nothing. Everyone else walks away owing nothing — which is why leaving early is
+        not losing.</p>
+    </div>
+
+    <div class="card">
+      <h2>Bidding <span class="q">the escalation</span></h2>
+      <div class="help">Each line is one agent's bids over time. The two who currently owe
+        money are highlighted; everyone else is grey. Above the dashed line, even the
+        winner loses money.</div>
+      <svg id="chart" viewBox="0 0 900 320" width="100%" height="320" role="img"
+           aria-label="Bid trajectories over the course of the auction"></svg>
+      <div class="legend" id="chartLegend"></div>
+    </div>
+
+    <div class="card">
+      <h2>Bidders <span class="q">who is still in</span></h2>
+      <div class="help">One card per agent, with the reason it gave for its last decision.
+        Faded means it has walked away — and owes nothing.</div>
+      <div class="cards" id="cards"></div>
+    </div>
+
+    <div class="card">
+      <h2>Results</h2>
+      <div id="result"><p class="note">Pick a scenario and hit Run.</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Event log <span class="q">every decision</span></h2>
+      <div class="help">The full record, in order, as it happens.</div>
+      <div id="log"></div>
+    </div>
+  </div>
+</div>
+<div id="tip"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const attr = s => String(s).split('&').join('&amp;').split('"').join('&quot;').split('<').join('&lt;');
+const money = v => (v < 0 ? '-$' : '$') + Math.abs(v).toFixed(0);
+let META = null, SEL = new Set(), QUEUE = [], PLAYING = false, POLL = null, ST = {};
+
+// ---------------- theme ----------------
+$('theme').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : cur === 'light' ? '' : 'dark';
+  if (next) document.documentElement.setAttribute('data-theme', next);
+  else document.documentElement.removeAttribute('data-theme');
+  drawChart();
+};
+
+// First-run guide: shown until explicitly dismissed.
+(() => {
+  const g = $('guide');
+  if (localStorage.getItem('guideDone') !== '1') g.classList.remove('hide');
+  $('guideDone').onclick = () => {
+    g.classList.add('hide');
+    localStorage.setItem('guideDone', '1');
+  };
+})();
+
+// Intro stays closed once dismissed — it is orientation, not a dashboard panel.
+(() => {
+  const intro = $('intro');
+  if (localStorage.getItem('introClosed') === '1') intro.removeAttribute('open');
+  intro.addEventListener('toggle', () =>
+    localStorage.setItem('introClosed', intro.open ? '0' : '1'));
+})();
+
+// ---------------- boot ----------------
+async function boot() {
+  META = await (await fetch('/api/meta')).json();
+
+  const sc = $('scenario');
+  sc.innerHTML = '<option value="">— custom setup —</option>' + META.scenarios.map(s =>
+    `<option value="${s.id}">${s.id}</option>`).join('');
+  sc.onchange = onScenario;
+
+  const roster = $('roster');
+  roster.innerHTML = Object.keys(META.rosters).map(r =>
+    `<option value="${r}">${r} (${META.rosters[r].length})</option>`).join('');
+  roster.value = 'mbti' in META.rosters ? 'mbti' : Object.keys(META.rosters)[0];
+  roster.onchange = () => drawPicker(false);
+  drawPicker(false);
+
+  $('provider').innerHTML = META.providers.map(p =>
+    `<option value="${p.id}" ${p.available?'':'disabled'}>${p.label}${p.available?'':' — no API key'}</option>`
+  ).join('');
+  $('provider').onchange = onProvider;
+  onProvider();
+
+  $('all').onclick  = () => { current().forEach(a => SEL.add(a.id)); drawPicker(true); };
+  $('none').onclick = () => { SEL.clear(); drawPicker(true); };
+  $('run').onclick  = start;
+  $('stop').onclick = () => fetch('/api/stop', {method:'POST'});
+  $('wipeAll').onclick = () => fetch('/api/wipe', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({})})
+    .then(r => r.json())
+    .then(d => { if (d.error) log(`<span class="wipe-line">wipe refused — ${attr(d.error)}</span>`); });
+  $('speed').oninput = () => $('speedLbl').textContent = $('speed').value + ' ms';
+  $('value').oninput = () => $('hv').textContent = '$' + $('value').value;
+  onScenario();
+  resetStage([]);
+}
+
+const current = () => META.rosters[$('roster').value] || [];
+
+function onScenario() {
+  const id = $('scenario').value;
+  const custom = !id;
+  $('customPanel').classList.toggle('hide', !custom);
+  $('memPanel').classList.toggle('hide', !custom);
+  if (custom) { $('scenarioDesc').textContent =
+    'Build your own: choose a roster, agents, provider and memory settings below.'; return; }
+  const s = META.scenarios.find(x => x.id === id);
+  const mem = [s.memory.within_game?'within-game':null, s.memory.cross_game?'cross-game':null]
+    .filter(Boolean).join(' + ') || 'off';
+  $('scenarioDesc').innerHTML = attr(s.description) +
+    `<br><br><b>${s.agents.length}</b> agents · <b>${s.repeats}</b> games · memory <b>${mem}</b>`
+    + ` · seats <b>${s.turn_order}</b> · provider <b>${s.provider}</b>`;
+  $('run').disabled = false;
+}
+
+function drawPicker(keep) {
+  const list = current();
+  if (!keep) SEL = new Set(list.slice(0, Math.min(8, list.length)).map(a => a.id));
+  $('picker').className = 'picker' + ($('roster').value === 'mbti' ? '' : ' wide');
+  $('picker').innerHTML = list.map(a => {
+    const t = a.traits || {};
+    const tip = a.name + '\n'
+      + 'competitiveness ' + t.competitiveness + ' · loss aversion ' + t.loss_aversion + '\n'
+      + 'discipline ' + t.rational_discipline + ' · status ' + t.status_sensitivity + '\n'
+      + 'reflection ' + t.reflection + ' · patience ' + t.patience + '\n\n' + (a.notes || '');
+    return `<div class="pick ${SEL.has(a.id)?'on':''}" data-id="${a.id}" title="${attr(tip)}">${a.name}</div>`;
+  }).join('');
+  [...document.querySelectorAll('.pick')].forEach(el => el.onclick = () => {
+    SEL.has(el.dataset.id) ? SEL.delete(el.dataset.id) : SEL.add(el.dataset.id);
+    drawPicker(true);
+  });
+  $('count').textContent = SEL.size + ' selected';
+  if (!$('scenario').value) $('run').disabled = SEL.size < 2;
+}
+
+function onProvider() {
+  const p = META.providers.find(x => x.id === $('provider').value);
+  $('model').innerHTML = p.models.map(m => `<option>${m}</option>`).join('');
+  const live = p.id !== 'mock';
+  $('model').classList.toggle('hide', !live);
+  $('modelLabel').classList.toggle('hide', !live);
+  $('keyNote').textContent = live
+    ? 'Live calls — every decision costs tokens.'
+    : 'Scripted agents: free, instant, and deterministic for a given seed.';
+}
+
+// ---------------- run ----------------
+async function start() {
+  const sid = $('scenario').value;
+  let body, names, value;
+
+  if (sid) {
+    const s = META.scenarios.find(x => x.id === sid);
+    body = { scenario: sid };
+    names = (META.rosters[s.roster] || []).filter(a => s.agents.includes(a.id)).map(a => a.name);
+    value = s.item_value;
+  } else {
+    body = {
+      roster: $('roster').value,
+      agents: current().filter(a => SEL.has(a.id)).map(a => a.id),
+      provider: $('provider').value, model: $('model').value,
+      item_value: +$('value').value, increment: +$('inc').value,
+      repeats: +$('games').value, seed: +$('seed').value,
+      turn_order: $('turn').value,
+      within_game: $('wg').checked, cross_game: $('cg').checked,
+      memory_mode: $('memMode').value,
+      keep_rounds: +$('keepRounds').value, keep_games: +$('keepGames').value,
+      name: 'gui'
+    };
+    names = current().filter(a => SEL.has(a.id)).map(a => a.name);
+    value = +$('value').value;
+  }
+
+  const res = await fetch('/api/run', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  if (!res.ok) { const e = await res.json(); return setStatus(e.error || 'failed', 'bad'); }
+
+  resetStage(names, value);
+  ST.memOn = sid
+    ? !!(META.scenarios.find(x => x.id === sid).memory.within_game ||
+         META.scenarios.find(x => x.id === sid).memory.cross_game)
+    : ($('wg').checked || $('cg').checked);
+  QUEUE = []; PLAYING = true;
+  $('wipeAll').disabled = !ST.memOn;
+  $('run').disabled = true; $('stop').disabled = false;
+  $('result').innerHTML = '<p class="note">running…</p>';
+  $('log').innerHTML = '';
+  setStatus('running', 'live');
+
+  let next = 0;
+  clearInterval(POLL);
+  POLL = setInterval(async () => {
+    const r = await (await fetch('/api/events?since=' + next)).json();
+    next = r.next; QUEUE.push(...r.events);
+    // The run can finish long before playback catches up (scripted runs take
+    // milliseconds). Wiping is only meaningful while the run is still live.
+    ST.live = r.running;
+    $('wipeAll').disabled = !(ST.memOn && r.running);
+    if (!r.running && QUEUE.length === 0) { clearInterval(POLL); finish(r.error); }
+  }, 120);
+  drain();
+}
+
+function resetStage(names, value) {
+  ST = { names: names||[], value: value||100, committed:{}, active:new Set(names||[]),
+         leader:null, bids:[], game:0, round:0, why:{}, results:[], metrics:null };
+  (names||[]).forEach(n => { ST.committed[n]=0; ST.why[n]=''; });
+  drawCards(); drawChart(); drawPays(); tiles();
+}
+
+function drain() {
+  if (!PLAYING) return;
+  const ev = QUEUE.shift();
+  if (ev) apply(ev);
+  setTimeout(drain, ev ? +$('speed').value : 60);
+}
+
+function apply(ev) {
+  if (ev.type === 'game_start') {
+    ST.game = ev.game_index + 1; ST.round = 0; ST.bids = []; ST.leader = null;
+    ST.names.forEach(n => { ST.committed[n]=0; ST.why[n]=''; });
+    ST.active = new Set(ST.names);
+    log(`<b>— game ${ST.game} · seed ${ev.seed} —</b>`);
+  } else if (ev.type === 'event') {
+    ST.round = ev.round;
+    if (ev.action === 'BID') {
+      ST.committed[ev.agent] = ev.bid; ST.leader = ev.agent;
+      ST.bids.push({agent: ev.agent, turn: ev.turn, bid: ev.bid, reason: ev.reason||''});
+      log(`<span class="up">r${ev.round} <b>${ev.agent}</b> → ${money(ev.bid)}</span> · ${attr(ev.reason||'')}`);
+    } else {
+      ST.active.delete(ev.agent);
+      log(`<span class="down">r${ev.round} <b>${ev.agent}</b> exits${ev.forced?' ['+ev.forced+']':''}</span> · ${attr(ev.reason||'')}`);
+    }
+    ST.why[ev.agent] = ev.reason || '';
+  } else if (ev.type === 'memory_wipe') {
+    const what = [];
+    if (ev.cleared_turns) what.push(`${ev.cleared_turns} round(s)`);
+    if (ev.cleared_games) what.push(`${ev.cleared_games} game(s)`);
+    log(`<span class="wipe-line">⌫ ${ev.agent} memory wiped` +
+        `${what.length ? ' — forgot ' + what.join(' and ') : ' (was already empty)'}</span>`);
+    return;
+  } else if (ev.type === 'game_end') {
+    ST.results.push(ev);
+    log(`<b>${ev.winner}</b> won at ${money(ev.winning_price)} · ${ev.escalation_ratio.toFixed(2)}× value`);
+  } else if (ev.type === 'done')      { ST.metrics = ev.metrics; showResults(); return; }
+  else if (ev.type === 'cancelled')   { log('<b>stopped</b>'); return; }
+  else if (ev.type === 'error')       { setStatus(ev.message,'bad'); log(`<b>${attr(ev.message)}</b>`); return; }
+  drawCards(); drawChart(); drawPays(); tiles();
+}
+
+function finish(err) {
+  PLAYING = false;
+  $('run').disabled = !$('scenario').value && SEL.size < 2;
+  $('stop').disabled = true;
+  $('wipeAll').disabled = true;
+  drawCards();
+  setStatus(err || 'done', err ? 'bad' : '');
+  if (ST.metrics) showResults();
+}
+
+function setStatus(t, cls) { $('statusText').textContent = t; $('status').className = cls || ''; }
+function log(html) {
+  const d = document.createElement('div'); d.innerHTML = html;
+  $('log').appendChild(d); $('log').scrollTop = $('log').scrollHeight;
+}
+
+// top two by committed — the two who pay
+function topTwo() {
+  return ST.names.filter(n => ST.committed[n] > 0)
+                 .sort((a,b) => ST.committed[b] - ST.committed[a]).slice(0,2);
+}
+
+function tiles() {
+  const bid = ST.leader ? ST.committed[ST.leader] : 0;
+  const total = ST.names.reduce((s,n)=>s+(ST.committed[n]||0),0);
+  $('tGame').textContent = ST.game || '—';
+  $('tGameSub').textContent = ST.results.length ? ST.results.length + ' finished' : ' ';
+  $('tRound').textContent = ST.round || '—';
+  $('tBid').textContent = money(bid);
+  $('tBidSub').textContent = ST.leader ? 'held by ' + ST.leader : ' ';
+  const r = bid / ST.value;
+  $('tRatio').textContent = r ? r.toFixed(2) + '×' : '—';
+  $('tRatio').style.color = r > 1 ? 'var(--critical)' : '';
+  $('tRatioSub').textContent = r > 1 ? 'winning now loses money' : ' ';
+  $('tActive').textContent = ST.active.size + '/' + ST.names.length;
+  const [a,b] = topTwo();
+  $('tActiveSub').textContent = (a||b) ? money((ST.committed[a]||0)+(ST.committed[b]||0)) + ' at stake' : ' ';
+  void total;
+}
+
+function drawPays() {
+  const [first, second] = topTwo();
+  const box = (rank, name, cls) => {
+    if (!name) return `<div class="pay"><div class="rank">${rank}</div>
+      <div class="who" style="color:var(--text-3)">—</div>
+      <div class="amt">nobody yet</div><div class="net">&nbsp;</div></div>`;
+    const paid = ST.committed[name];
+    const net = cls === 'first' ? ST.value - paid : -paid;
+    const gets = cls === 'first' ? 'takes the item' : 'gets nothing';
+    return `<div class="pay ${cls}"><div class="rank">${rank}</div>
+      <div class="who">${name}</div>
+      <div class="amt">pays ${money(paid)} · ${gets}</div>
+      <div class="net ${net>=0?'pos':'neg'}">net ${money(net)}</div></div>`;
+  };
+  $('pays').innerHTML = box('1st — highest bidder', first, 'first')
+                      + box('2nd — also pays', second, 'second');
+}
+
+function drawCards() {
+  const [first, second] = topTwo();
+  $('cards').innerHTML = ST.names.map(n => {
+    const out = !ST.active.has(n), c = ST.committed[n] || 0, over = c > ST.value;
+    const role = n === first ? 'lead' : n === second ? 'second' : '';
+    const tag = n === first ? '<span class="tag pay1">pays</span>'
+              : n === second ? '<span class="tag pay2">pays</span>'
+              : (out ? '<span class="tag safe">safe</span>' : '');
+    const wipeBtn = ST.memOn && ST.live
+      ? `<button class="wipe" data-agent="${attr(n)}" title="Wipe ${attr(n)}'s memory">⌫</button>` : '';
+    return `<div class="agent ${out?'out':''} ${role}">
+      <div class="top"><span class="nm">${n}</span>${tag}${wipeBtn}</div>
+      <div class="amt ${over?'over':''}">${money(c)} committed</div>
+      <div class="why">${attr(ST.why[n] || (out ? 'walked away' : 'waiting…'))}</div>
+    </div>`;
+  }).join('');
+  [...document.querySelectorAll('.wipe')].forEach(el => el.onclick = async () => {
+    await fetch('/api/wipe', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({agent: el.dataset.agent})})
+      .then(r => r.json())
+      .then(d => { if (d.error) log(`<span class="wipe-line">wipe refused — ${attr(d.error)}</span>`); });
+  });
+}
+
+/* Emphasis encoding rather than one hue per agent: with up to 16 bidders a
+   categorical palette would have to cycle, which makes identity unreadable.
+   The two who currently pay carry the two hues; everyone else is a recessive
+   neutral. Identity is never colour-alone — the paying lines are directly
+   labelled and the legend names the roles. */
+function drawChart() {
+  const svg = $('chart'), W=900,H=320,L=56,R=118,T=16,B=34;
+  if (!ST.bids || !ST.bids.length) {
+    svg.innerHTML = `<text x="${L}" y="${H/2}" fill="var(--text-3)" font-size="13">
+      no bids yet — the chart fills in as the auction runs</text>`;
+    $('chartLegend').innerHTML = ''; return;
+  }
+  const maxT = Math.max(...ST.bids.map(b=>b.turn));
+  const maxB = Math.max(ST.value, ...ST.bids.map(b=>b.bid)) * 1.14;
+  const x = t => L + (t/Math.max(maxT,1))*(W-L-R);
+  const y = v => T + (H-T-B) - (v/maxB)*(H-T-B);
+  const [first, second] = topTwo();
+  let out = '';
+
+  for (let i=0;i<=4;i++) {
+    const v = maxB*i/4;
+    out += `<line x1="${L}" y1="${y(v).toFixed(1)}" x2="${W-R}" y2="${y(v).toFixed(1)}"
+             stroke="var(--line)" stroke-width="1"/>
+            <text x="${L-9}" y="${(y(v)+4).toFixed(1)}" text-anchor="end" fill="var(--text-3)"
+             font-size="11">${money(v)}</text>`;
+  }
+  // The break-even frontier: an annotation, always carrying its own label.
+  out += `<line x1="${L}" y1="${y(ST.value).toFixed(1)}" x2="${W-R}" y2="${y(ST.value).toFixed(1)}"
+            stroke="var(--serious)" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <text x="${W-R-6}" y="${(y(ST.value)-7).toFixed(1)}" text-anchor="end"
+            fill="var(--serious)" font-size="11" font-weight="600">
+            ▲ ${money(ST.value)} — above here, winning still loses</text>`;
+
+  const byAgent = {};
+  ST.bids.forEach(b => (byAgent[b.agent] = byAgent[b.agent] || []).push(b));
+  const colour = n => n === first ? 'var(--series-1)'
+                    : n === second ? 'var(--series-2)' : 'var(--neutral-mark)';
+  const order = ST.names.filter(n => n !== first && n !== second).concat([second, first]);
+  order.filter(Boolean).forEach(n => {
+    const pts = byAgent[n]; if (!pts) return;
+    const lead = n === first || n === second;
+    const d = pts.map((p,j)=>`${j?'L':'M'}${x(p.turn).toFixed(1)},${y(p.bid).toFixed(1)}`).join(' ');
+    out += `<path d="${d}" fill="none" stroke="${colour(n)}" stroke-width="${lead?2.4:1.4}"
+             opacity="${lead?1:.55}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const last = pts[pts.length-1];
+    if (lead) {
+      out += `<circle cx="${x(last.turn).toFixed(1)}" cy="${y(last.bid).toFixed(1)}" r="4.5"
+               fill="${colour(n)}" stroke="var(--surface-1)" stroke-width="2"/>
+              <text x="${(x(last.turn)+9).toFixed(1)}" y="${(y(last.bid)+4).toFixed(1)}"
+               font-size="11.5" font-weight="650" fill="var(--text-1)">${n}</text>`;
+    }
+  });
+  // hover targets
+  ST.bids.forEach(b => {
+    out += `<circle cx="${x(b.turn).toFixed(1)}" cy="${y(b.bid).toFixed(1)}" r="9"
+             fill="transparent" class="hit" data-a="${attr(b.agent)}" data-b="${b.bid}"
+             data-t="${b.turn}" data-r="${attr(b.reason)}"/>`;
+  });
+  svg.innerHTML = out;
+
+  [...svg.querySelectorAll('.hit')].forEach(el => {
+    el.onmousemove = e => {
+      const t = $('tip');
+      t.innerHTML = `<div class="h">${el.dataset.a}</div>
+        <div class="r">bid ${money(+el.dataset.b)} · turn ${el.dataset.t}</div>
+        ${el.dataset.r?`<div class="r" style="margin-top:4px">${el.dataset.r}</div>`:''}`;
+      t.style.display='block';
+      t.style.left = Math.min(e.clientX+14, innerWidth-250)+'px';
+      t.style.top  = (e.clientY+14)+'px';
+    };
+    el.onmouseleave = () => $('tip').style.display='none';
+  });
+
+  $('chartLegend').innerHTML =
+    `<span><i style="background:var(--series-1)"></i>highest bidder — pays</span>
+     <span><i style="background:var(--series-2)"></i>runner-up — also pays</span>
+     <span><i style="background:var(--neutral-mark)"></i>everyone else — pays nothing</span>`;
+}
+
+function showResults() {
+  const m = ST.metrics; if (!m) return;
+  const a = m.aggregate, g = m.games;
+  const drift = g.length > 1 ? g[0].winning_price - g[g.length-1].winning_price : 0;
+
+  let html = `<div class="tiles" style="margin-bottom:14px">
+    <div class="tile"><div class="k">Mean price</div><div class="v">${money(a.mean_winning_price)}</div>
+      <div class="s">item worth ${money(g[0].item_value)}</div></div>
+    <div class="tile"><div class="k">Escalation</div>
+      <div class="v" style="color:${a.mean_escalation_ratio>1?'var(--critical)':''}">${a.mean_escalation_ratio.toFixed(2)}×</div>
+      <div class="s">${a.mean_escalation_ratio>1?'past the item value':'stopped below value'}</div></div>
+    <div class="tile"><div class="k">Auctioneer took</div><div class="v">${money(a.mean_auctioneer_profit)}</div>
+      <div class="s">per game</div></div>
+    <div class="tile"><div class="k">1st → last game</div>
+      <div class="v" style="color:${drift>0?'var(--good)':drift<0?'var(--critical)':''}">${drift>0?'−':''}${money(Math.abs(drift))}</div>
+      <div class="s">${drift>0?'learned to stop sooner':drift<0?'escalated further':'no change'}</div></div>
+  </div>`;
+
+  html += `<table><caption class="hide">Result per game</caption><thead><tr>
+    <th>Game</th><th>Winner (pays)</th><th>Price</th><th>Winner net</th>
+    <th>Runner-up (pays)</th><th>Their net</th><th>Rounds</th></tr></thead><tbody>`;
+  g.forEach(r => {
+    html += `<tr><td>${r.game_index+1}</td><td>${r.winner||'—'}</td>
+      <td>${money(r.winning_price)}</td>
+      <td class="${r.item_value-r.winning_price>=0?'pos':'neg'}">${money(r.item_value-r.winning_price)}</td>
+      <td>${r.runner_up||'—'}</td>
+      <td class="neg">${money(-r.runner_up_price)}</td><td>${r.rounds}</td></tr>`;
+  });
+  html += '</tbody></table>';
+
+  html += `<h2 style="margin-top:18px">By agent</h2><table><thead><tr>
+    <th>Agent</th><th>Wins</th><th>Mean payoff</th><th>Mean committed</th>
+    <th>Overbid</th><th>Escalated</th><th>Rounds past</th></tr></thead><tbody>`;
+  Object.entries(a.agents).sort((p,q)=>q[1].mean_payoff-p[1].mean_payoff).forEach(([n,r]) => {
+    html += `<tr><td>${n}</td><td>${r.wins}</td>
+      <td class="${r.mean_payoff>0?'pos':r.mean_payoff<0?'neg':''}">${money(r.mean_payoff)}</td>
+      <td>${money(r.mean_final_committed)}</td>
+      <td class="${r.mean_overbid>0?'neg':''}">${money(r.mean_overbid)}</td>
+      <td>${r.escalated_in_games}/${r.games}</td>
+      <td>${r.mean_rounds_past_rational==null?'—':r.mean_rounds_past_rational.toFixed(1)}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  html += `<p class="note">“Rounds past” counts bidding after the first bid above the item's
+    value — the point where even winning loses money. A negative payoff for the
+    <em>winner</em> is the whole phenomenon.</p>`;
+  $('result').innerHTML = html;
+}
+
+boot();
+</script>
+</body>
+</html>

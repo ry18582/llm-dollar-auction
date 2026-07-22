@@ -1,0 +1,44 @@
+{
+  "name": "s2_same_model_across_mbti",
+  "description": "SAME LLM, DIFFERENT MBTI. All 16 types on Claude Opus 4.8. Model held constant, so divergence is attributable to the persona. 16 agents x ~6 rounds x 3 games is a real bill -- start with repeats=1.",
+  "roster": "mbti",
+  "agents": [
+    "intj",
+    "intp",
+    "entj",
+    "entp",
+    "infj",
+    "infp",
+    "enfj",
+    "enfp",
+    "istj",
+    "isfj",
+    "estj",
+    "esfj",
+    "istp",
+    "isfp",
+    "estp",
+    "esfp"
+  ],
+  "seed": 7,
+  "repeats": 3,
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "turn_order": "rotate",
+  "memory": {
+    "within_game": false,
+    "cross_game": false
+  },
+  "overrides": {
+    "model": {
+      "provider": "anthropic",
+      "model": "claude-opus-4-8",
+      "max_tokens": 256
+    }
+  }
+}

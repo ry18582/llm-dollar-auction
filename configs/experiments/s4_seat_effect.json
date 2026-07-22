@@ -1,0 +1,32 @@
+{
+  "name": "s4_seat_effect",
+  "description": "SEAT EFFECT. turn_order=fixed with repeats=n_agents isolates the positional advantage: compare against s3_memory_off, which is identical but rotates. Any difference is the seat, not the persona.",
+  "roster": "mbti",
+  "agents": [
+    "estp",
+    "esfp",
+    "esfj",
+    "enfp",
+    "intj",
+    "istj"
+  ],
+  "seed": 7,
+  "repeats": 6,
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "turn_order": "fixed",
+  "memory": {
+    "within_game": false,
+    "cross_game": false
+  },
+  "overrides": {
+    "model": {
+      "provider": "mock"
+    }
+  }
+}

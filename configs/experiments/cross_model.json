@@ -1,0 +1,21 @@
+{
+  "name": "cross_model",
+  "description": "Same persona, different backends. Each agent keeps its own model block, so edit configs/agents/archetypes/*.json to assign providers. Needs keys for whichever providers you assign.",
+  "seed": 7,
+  "repeats": 3,
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "roster": "archetypes",
+  "agents": [
+    "rational_economist",
+    "ego_defender",
+    "sunk_cost_escalator",
+    "reflective_strategist"
+  ],
+  "overrides": {}
+}

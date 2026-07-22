@@ -1,0 +1,30 @@
+{
+  "name": "s5_lone_escalator",
+  "description": "ONE HAWK AMONG DOVES. A single ESTP escalator against three disciplined types (INTJ, INTP, ISTJ). Tests whether escalation needs a willing partner: with nobody trading raises, the trap should not spring. Compare with s7_duel, which is two hawks.",
+  "roster": "mbti",
+  "agents": [
+    "estp",
+    "intj",
+    "intp",
+    "istj"
+  ],
+  "seed": 3,
+  "repeats": 4,
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "turn_order": "rotate",
+  "memory": {
+    "within_game": false,
+    "cross_game": false
+  },
+  "overrides": {
+    "model": {
+      "provider": "mock"
+    }
+  }
+}

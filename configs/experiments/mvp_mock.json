@@ -1,0 +1,26 @@
+{
+  "name": "mvp_mock",
+  "description": "MVP: 4 archetypes, scripted agents, no API keys needed.",
+  "seed": 7,
+  "repeats": 5,
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "roster": "archetypes",
+  "agents": [
+    "rational_economist",
+    "ego_defender",
+    "sunk_cost_escalator",
+    "reflective_strategist"
+  ],
+  "overrides": {
+    "model": {
+      "provider": "mock",
+      "model": "mock"
+    }
+  }
+}

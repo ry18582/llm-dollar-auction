@@ -1,0 +1,27 @@
+{
+  "name": "archetypes_anthropic",
+  "description": "Same persona, one model: 4 archetypes all on Claude Opus 4.8. Needs ANTHROPIC_API_KEY.",
+  "seed": 7,
+  "repeats": 3,
+  "rules": {
+    "item_value": 100.0,
+    "increment": 5.0,
+    "default_budget": 500.0,
+    "max_rounds": 60,
+    "max_bid_multiple": 5.0
+  },
+  "roster": "archetypes",
+  "agents": [
+    "rational_economist",
+    "ego_defender",
+    "sunk_cost_escalator",
+    "reflective_strategist"
+  ],
+  "overrides": {
+    "model": {
+      "provider": "anthropic",
+      "model": "claude-opus-4-8",
+      "max_tokens": 256
+    }
+  }
+}
