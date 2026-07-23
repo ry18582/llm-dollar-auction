@@ -219,6 +219,7 @@ tbody tr:hover { background:var(--surface-2); }
 .hide { display:none !important; }
 #log { max-height:180px; overflow:auto; font:12px/1.6 ui-monospace,Menlo,Consolas,monospace; color:var(--text-3); }
 #log b { color:var(--text-1); font-weight:600; }
+#log .ts { color:var(--text-3); opacity:.7; margin-right:8px; user-select:none; }
 #log .up { color:var(--series-1); } #log .down { color:var(--text-2); }
 #tip {
   position:fixed; pointer-events:none; z-index:50; background:var(--surface-1);
@@ -684,7 +685,11 @@ function finish(err) {
 
 function setStatus(t, cls) { $('statusText').textContent = t; $('status').className = cls || ''; }
 function log(html) {
-  const d = document.createElement('div'); d.innerHTML = html;
+  const now = new Date();
+  const ts = [now.getHours(), now.getMinutes(), now.getSeconds()]
+    .map(n => String(n).padStart(2, '0')).join(':');
+  const d = document.createElement('div');
+  d.innerHTML = `<span class="ts">${ts}</span>${html}`;
   $('log').appendChild(d); $('log').scrollTop = $('log').scrollHeight;
 }
 
