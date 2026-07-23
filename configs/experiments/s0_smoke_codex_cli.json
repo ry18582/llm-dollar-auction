@@ -1,6 +1,6 @@
 {
   "name": "s0_smoke_codex_cli",
-  "description": "SMOKE TEST via ChatGPT plan sign-in \u2014 no API key. Drives the `codex` CLI. Install: npm i -g @openai/codex, then run `codex` once and sign in.",
+  "description": "SMOKE TEST via ChatGPT plan sign-in \u2014 no API key. Drives the `codex` CLI. Install: npm i -g @openai/codex, then run `codex` once and sign in. Bids open at $10 and rise in $10 steps.",
   "roster": "mbti",
   "agents": [
     "estp",
@@ -11,10 +11,10 @@
   "turn_order": "rotate",
   "rules": {
     "item_value": 100.0,
-    "increment": 50.0,
+    "increment": 10.0,
     "default_budget": 250.0,
     "max_rounds": 8,
-    "max_bid_multiple": 2.5
+    "max_bid_multiple": 2.0
   },
   "memory": {
     "within_game": true,

@@ -1,6 +1,6 @@
 {
   "name": "s0_smoke_subscription",
-  "description": "SMOKE TEST via subscription sign-in \u2014 no API key. Drives the `claude` CLI, which uses your Pro/Max entitlement. Deliberately tiny (2 agents, $50 increment) because each decision takes seconds and draws on your plan allowance.",
+  "description": "SMOKE TEST via Claude Pro/Max sign-in \u2014 no API key. Drives the `claude` CLI. Deliberately tiny (2 agents, $10 increment): each decision takes seconds and draws on your plan allowance. Run `claude` once and sign in first.",
   "roster": "mbti",
   "agents": [
     "estp",
@@ -11,10 +11,10 @@
   "turn_order": "rotate",
   "rules": {
     "item_value": 100.0,
-    "increment": 50.0,
+    "increment": 10.0,
     "default_budget": 250.0,
     "max_rounds": 8,
-    "max_bid_multiple": 2.5
+    "max_bid_multiple": 2.0
   },
   "memory": {
     "within_game": true,
@@ -26,7 +26,8 @@
     "model": {
       "provider": "cli",
       "command": "claude",
-      "timeout": 150
+      "max_tokens": 1024,
+      "timeout": 180
     }
   }
 }
